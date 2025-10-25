@@ -1,0 +1,4 @@
+__pycache__/
+.prompt/plans.md
+.env
+venv/
