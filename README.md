@@ -1,6 +1,6 @@
 # Restaurant Message Classifier
 
-Sistem klasifikasi pesan restoran menggunakan GPT-5-nano dan Streamlit.
+Sistem klasifikasi pesan restoran menggunakan gpt-5-nano (atau model lain) dan Streamlit.
 
 ## Setup
 

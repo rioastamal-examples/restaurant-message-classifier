@@ -46,6 +46,7 @@ with st.form("message_form"):
                             'message_text': message,
                             'urgency': result['urgency'],
                             'groups': result['groups'],
+                            'action_message': result.get('action_message', ''),
                             'urgency_order': urgency_order
                         }
                         

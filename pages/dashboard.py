@@ -92,6 +92,7 @@ try:
                     <strong>Pesan Lengkap:</strong><br>{row['message_text']}<br><br>
                     <strong>Urgensi:</strong> {row['urgency']}<br>
                     <strong>Kategori:</strong> {', '.join(row['groups']) if row['groups'] else 'None'}<br>
+                    <strong>Tindakan:</strong> {row.get('action_message', 'Tidak ada tindakan')}<br>
                     <strong>Waktu:</strong> {row['created_at']}<br>
                     <strong>ID:</strong> {row['id']}
                     </div>

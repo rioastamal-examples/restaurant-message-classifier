@@ -12,26 +12,30 @@ This file must contain a **comprehensive, step-by-step implementation plan** des
 
 The plan should include:
 
-1. **Overall architecture** — how the classifier logic, Streamlit UI, and Supabase database will interact.
+1. **Overall architecture** — how the classifier logic, Streamlit UI, LiteLLM API integration, and Supabase database will interact.
 2. **Database schema** — tables, fields, and relationships in Supabase (e.g., messages, classifications, users if any).
 3. **Streamlit UI design** — describe the two pages below:
 
    **Page 1: User Message Input Page**
    - Allows users to type and submit messages (in Bahasa Indonesia).
-   - On submission, the app calls the classifier (this prompt) to determine the urgency and message groups.
+   - On submission, the app calls the classifier (this prompt) through LiteLLM to determine the urgency, message groups, and generate a short action message.
    - The result is saved to Supabase using the Supabase MCP server.
 
    **Page 2: Admin Dashboard Page**
-   - Displays a list/table of all submitted messages along with their classifications (urgency and groups).
+   - Displays a list/table of all submitted messages along with their classifications (urgency, groups, and action message).
    - Allows filtering or sorting by urgency or group.
    - Uses live data from Supabase via the Supabase MCP server.
 
-4. **Integration flow** — how messages are sent from the UI to the classifier prompt and how classification results are stored or retrieved.
-5. **MCP server usage plan**:
+4. **Integration flow** — how messages are sent from the UI to the classifier via LiteLLM and how classification results are stored or retrieved.
+5. **LLM Integration (LiteLLM)**
+   - Use **[LiteLLM](https://github.com/BerriAI/litellm)** as the abstraction layer to call different LLM providers (OpenAI, Anthropic, etc.).
+   - The initial implementation will use **OpenAI `gpt-5-mini`** as the default model.
+   - The plan must include where and how LiteLLM configuration (API keys, model selection) will be handled.
+6. **MCP server usage plan**:
    - **Fetch MCP** → for fetching website content or external resources if needed.
    - **Supabase MCP** → for database operations such as schema creation, inserts, updates, and queries.
-6. **Testing & validation steps** — how to verify that classification and database integration work correctly.
-7. **Deployment considerations** — how to run it locally and what environment variables are required (e.g., Supabase URL and key).
+7. **Testing & validation steps** — how to verify that classification and database integration work correctly.
+8. **Deployment considerations** — how to run it locally and what environment variables are required (e.g., Supabase URL, Supabase Key, OpenAI Key).
 
 Only after `.prompt/plans.md` is complete and approved should any code be written.
 
@@ -42,6 +46,7 @@ You are an intelligent message classification system for a **restaurant support 
 Your task is to analyze messages sent by users (in **Bahasa Indonesia**) and return a **structured JSON** output that includes:
 1. **Level of urgency**
 2. **Relevant message groups**
+3. **A short, actionable message to the restaurant owner**
 
 ---
 
@@ -49,11 +54,17 @@ Your task is to analyze messages sent by users (in **Bahasa Indonesia**) and ret
 ```json
 {
   "urgency": "Not Urgent | Urgent | Extremely Urgent",
-  "groups": ["Facility", "The Waiters", "The Chef", "Cleanse", "Administration", "Hospitality", "The Foods"]
+  "groups": ["Facility", "The Waiters", "The Chef", "Cleanse", "Administration", "Hospitality", "The Foods"],
+  "action_message": "A short and actionable summary for the restaurant owner."
 }
 ```
-- The `"groups"` array can contain **multiple values** if a message is relevant to more than one group.
-- If the message is unclear, choose the **closest matching category** and set `"urgency": "Not Urgent"`.
+
+**Field details:**
+- `"urgency"` → urgency level of the message.
+- `"groups"` → array of relevant message categories (can be multiple).
+- `"action_message"` → concise, polite, and actionable message in Bahasa Indonesia directed to the restaurant owner, e.g.  
+  “Segera periksa kondisi AC di ruang VIP.”  
+  “Berikan apresiasi kepada chef atas masakan yang disukai pelanggan.”
 
 ---
 
@@ -103,7 +114,8 @@ Output:
 ```json
 {
   "urgency": "Urgent",
-  "groups": ["Facility", "The Waiters"]
+  "groups": ["Facility", "The Waiters"],
+  "action_message": "Segera perbaiki lampu dapur dan beri arahan kepada pelayan untuk mempercepat penyajian."
 }
 ```
 
@@ -115,7 +127,8 @@ Output:
 ```json
 {
   "urgency": "Extremely Urgent",
-  "groups": ["Cleanse", "Facility"]
+  "groups": ["Cleanse", "Facility"],
+  "action_message": "Segera bersihkan tumpahan minyak di lantai untuk mencegah kecelakaan."
 }
 ```
 
@@ -127,7 +140,8 @@ Output:
 ```json
 {
   "urgency": "Not Urgent",
-  "groups": ["The Chef", "The Foods"]
+  "groups": ["The Chef", "The Foods"],
+  "action_message": "Sampaikan apresiasi kepada chef atas masakan yang disukai pelanggan."
 }
 ```
 
@@ -139,6 +153,7 @@ Output:
 ```json
 {
   "urgency": "Urgent",
-  "groups": ["Administration", "The Waiters"]
+  "groups": ["Administration", "The Waiters"],
+  "action_message": "Periksa kesalahan tagihan dan bantu pelanggan dengan segera."
 }
 ```
